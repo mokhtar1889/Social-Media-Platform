@@ -2,8 +2,6 @@ import {asyncHandler} from "./../../utile/asyncHandler.js"
 import cloudinary from "../../utile/cloudinary.js"
 import { Post } from "../../../database/models/post.js"
 
-
-
 // create post 
 export const createPost = asyncHandler(async(req , res , next)=>{
     
@@ -11,21 +9,17 @@ export const createPost = asyncHandler(async(req , res , next)=>{
     let user = req.user
     let attachments = req.files
 
-    //check if post exists
-    let post = await Post.findOne({text})
-    if(post) return next(new Error("this post is already exists!!", {cause:400}))
-
     
-    post = await Post.create({
+    let post = await Post.create({
         user:user._id,
         text 
     })
 
     //save attachments in the database if exists    
-    if(req.files){
+    if(attachments){
         let response ;
-        attachments.forEach(async (attachment) => {
-             response = await cloudinary.uploader.upload(attachment.path , {
+        attachments.forEach(async(attach)=>{
+            response = await cloudinary.uploader.upload(attach.path, {
                 folder:`social_platform/${user._id}/posts/${post._id}`
             })
             post.attachments.push({
@@ -33,16 +27,14 @@ export const createPost = asyncHandler(async(req , res , next)=>{
                 secure_url:response.secure_url
             })
             await post.save()
-        });
+        })
     }
 
     //add post to user document
     user.posts.push(post._id)
     await user.save()
 
-    return res.json({success:true , message:'post created successfully'})
-
-
+    return res.json({success:true , message:'post created successfully' , post})
 })
 
 //delete post 
@@ -220,13 +212,36 @@ export const sharePost = asyncHandler(async(req , res , next)=>{
 
     //check post
     let post = await Post.findById(postId)
+
     if(!post) return next(new Error("post is not exists!" , {cause:404}))
 
+    // create new post
+    let newPost = await Post.create({
+        user:req.user._id ,
+        text:post.text,
+        attachments:post.attachments
+    })    
+
+    console.log(newPost)
+
         // add post to user  posts lists
-        user.posts.push(post._id)
+        user.posts.push(newPost._id)
         await user.save()
 
         //response
         return res.json({success:true , message:"post shared"})
+
+})
+
+//user posts
+export const userPosts = asyncHandler(async(req , res , next)=>{
+    let user = req.user
+    let posts = await Post.find({user:user._id})
+
+    return res.json({
+        success:true ,
+        numberOfPosts:posts.length ,
+        posts
+    })
 
 })

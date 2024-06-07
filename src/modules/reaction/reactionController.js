@@ -9,6 +9,7 @@ import { asyncHandler } from "../../utile/asyncHandler.js"
 export const addReaction = asyncHandler(async(req , res , next)=>{
     let {postId} = req.params 
     let user = req.user
+    let reactionDB
 
     //check post
     let post = await Post.findById(postId)
@@ -16,21 +17,27 @@ export const addReaction = asyncHandler(async(req , res , next)=>{
 
     //check reaction 
     let reaction = await Reaction.findOne({user:user._id , post:post._id})
-    if(reaction) return next(new Error("you already reacted to this post" , {cause:400}))    
-    
-    //add reaction 
-    let reactionDB = await Reaction.create({
+    if(reaction){
+        reaction.reaction = req.body.reaction
+        await reaction.save()
+        //response
+        return res.json({success:true , message:"Reaction added to post"})
+
+    }else{
+        //add reaction 
+        reactionDB = await Reaction.create({
         user:user._id ,
         reaction:req.body.reaction,
         post:post._id
-    })
+        })
+        // add reaction to post document
+        post.reactions.push(reactionDB._id);
+        await post.save()
+        //response
+        return res.json({success:true , message:"Reaction added to post" , reaction:reactionDB.reaction})
+    } 
+    
 
-    // add reaction to post document
-    post.reactions.push(reactionDB._id);
-    await post.save()
-
-    //response
-    return res.json({success:true , message:"Reaction added to post" , reaction:reactionDB.reaction})
 })
 
 //remove reaction from post 

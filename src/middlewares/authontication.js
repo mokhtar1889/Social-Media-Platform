@@ -18,7 +18,7 @@ export let isAuthenticated = async (req , res , next)=>{
     //check user
     let payload = jwt.verify(token , process.env.TOKEN_SECRET)
     
-    let user = await User.findById(payload.id).select("-password -isActivated -__v")
+    let user = await User.findById(payload.id).select("-password -isActivated -__v").populate({path:"posts" , populate:{path:"reactions"}})
 
     if(!user) next(new Error("user is not exists!" , {cause:404}))
 

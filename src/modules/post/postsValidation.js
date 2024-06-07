@@ -7,10 +7,10 @@ let objectId = (value , helper)=>{
     if(Types.ObjectId.isValid(value)) return true
      return helper.message("id is not valid")
 }
-
 // create post
 export const createPost = joi.object({
     text:joi.string().required(),
+    attachments:joi.string().allow("" , null)
 }).required()
 
 //delete post 

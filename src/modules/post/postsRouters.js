@@ -8,6 +8,7 @@ import commentRouter from "../comment/commentRouters.js"
 import reactionRouter from "../reaction/reactionRouter.js"
 
 
+
 const router = Router()
 
 router.use("/:postId/comment" , commentRouter)
@@ -17,7 +18,7 @@ router.use("/:postId/reaction" , reactionRouter )
 router.use("/:postId/:commentId/reaction" , reactionRouter )
 
 // add post
-router.post("/createPost" , isAuthenticated , uploadFile(fileValidation.postAttachments).array("postAttachments"), validation(postValidation.createPost) ,postControllers.createPost)
+router.post("/createPost" , isAuthenticated ,uploadFile(fileValidation.postAttachments).array("attachments") , validation(postValidation.createPost) ,postControllers.createPost)
 
 //delete post
 router.delete('/deletePost/:id' , isAuthenticated , validation(postValidation.deletePost) ,postControllers.deletePost)
@@ -39,6 +40,9 @@ router.patch("/removePost/:postId" , isAuthenticated , validation(postValidation
 
 //share post
 router.patch("/sharePost/:postId" , isAuthenticated , validation(postValidation.sharePost) , postControllers.sharePost )
+
+//get user posts
+router.get("/userPosts" , isAuthenticated , postControllers.userPosts)
 
 export default router 
 
