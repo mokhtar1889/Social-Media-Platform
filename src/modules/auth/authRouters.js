@@ -31,8 +31,14 @@ router.get("/activateAccount/:token", authControllers.acticateAccount )
 //delete user
 router.delete("/deleteUser" , isAuthenticated , authControllers.deleteUser)
 
-//get user profile
+//get my profile
 router.get("/myProfile" , isAuthenticated , authControllers.myProfile)
+
+// get user profile
+router.get("/:userId" , isAuthenticated , validation(authValidationSchemas.userProfile) , authControllers.userProfile  )
+
+//get all users
+router.post("/allUsers",isAuthenticated , authControllers.getAllUsers)
 
 //logout
 router.get("/logout" , isAuthenticated , authControllers.logout )

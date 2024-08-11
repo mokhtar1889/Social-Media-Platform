@@ -2,8 +2,6 @@ import jwt from "jsonwebtoken"
 import { User } from "../../database/models/auth.js";
 import { Token } from "../../database/models/token.js";
 
-
-
 export let isAuthenticated = async (req , res , next)=>{
 
     let {token} = req.headers
@@ -18,12 +16,14 @@ export let isAuthenticated = async (req , res , next)=>{
     //check user
     let payload = jwt.verify(token , process.env.TOKEN_SECRET)
     
-    let user = await User.findById(payload.id).select("-password -isActivated -__v").populate({path:"posts" , populate:{path:"reactions"}})
+    let user = await User.findById(payload.id).select("-password -isActivated -__v").populate({path:"posts" , populate:{path:"reactions"}}).populate({path:"savedPosts",populate:{path:'user'}})
 
     if(!user) next(new Error("user is not exists!" , {cause:404}))
 
     //add user to request
     req.user = user
+
+    console.log(user)
 
     return next()
 

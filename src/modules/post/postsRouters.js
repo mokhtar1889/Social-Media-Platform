@@ -44,6 +44,12 @@ router.patch("/sharePost/:postId" , isAuthenticated , validation(postValidation.
 //get user posts
 router.get("/userPosts" , isAuthenticated , postControllers.userPosts)
 
+//get post
+router.get("/getPost/:postId" , isAuthenticated , validation(postValidation.getPost) , postControllers.getPost)
+
+//get post comments
+router.get("/:postId/comments" , isAuthenticated , validation(postValidation.getPostComments),postControllers.getPostComments)
+
 export default router 
 
 

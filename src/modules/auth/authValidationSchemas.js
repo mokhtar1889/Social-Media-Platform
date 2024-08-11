@@ -1,5 +1,11 @@
 import joi from 'joi'
+import { Types } from 'mongoose'
 
+//custom id validation
+let objectId = (value , helper)=>{
+    if(Types.ObjectId.isValid(value)) return true
+    return helper.message("id is not valid")
+}
 
 //signup
 export let signup = joi.object({
@@ -42,3 +48,9 @@ export let resetPassword = joi.object({
     newPassword:joi.string().required(),
     confirmPassword:joi.string().valid(joi.ref("newPassword")).required()
 }).required()
+
+//get user profile
+export let userProfile = joi.object({
+    userId:joi.custom(objectId).required()
+}).required()
+

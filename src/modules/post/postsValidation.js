@@ -7,6 +7,7 @@ let objectId = (value , helper)=>{
     if(Types.ObjectId.isValid(value)) return true
      return helper.message("id is not valid")
 }
+
 // create post
 export const createPost = joi.object({
     text:joi.string().required(),
@@ -50,3 +51,14 @@ export const removePost = joi.object({
 export const sharePost = joi.object({
     postId:joi.custom(objectId).required()
 }).required()
+
+//get post
+export const getPost = joi.object({
+    postId:joi.custom(objectId).required()
+}).required()
+
+//get post comments
+export const getPostComments = joi.object({
+    postId:joi.custom(objectId).required()
+}).required()
+

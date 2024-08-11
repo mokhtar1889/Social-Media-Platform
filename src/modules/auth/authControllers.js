@@ -224,11 +224,29 @@ export let deleteUser = asyncHandler(async(req , res , next)=>{
 
 })
 
-//get user profile
-export let myProfile = asyncHandler(async(req , res , next)=>{
-    
-    return res.json({user:req.user})
+//get my profile
+export let myProfile = asyncHandler(async(req , res , next)=>{  
+    return res.json({success:true , user:req.user})
+})
 
+//get user profile
+export let userProfile = asyncHandler(async(req , res , next)=>{
+    let {userId} = req.params
+
+    //check user
+    let user = await User.findById(userId)
+    if(!user) return next(new Error("this user is not exists!" , {cause:404}))
+        return res.json({
+            success:true,
+            user
+        })
+})
+
+//get all users
+export let getAllUsers = asyncHandler(async(req , res , next)=>{
+    let users = await User.find({})
+
+    return res.json({success:true , numberOfUsers:users.length , users})
 })
 
 //logout

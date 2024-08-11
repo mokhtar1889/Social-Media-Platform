@@ -1,6 +1,7 @@
 import {asyncHandler} from "./../../utile/asyncHandler.js"
 import cloudinary from "../../utile/cloudinary.js"
 import { Post } from "../../../database/models/post.js"
+import { Comment } from "../../../database/models/comment.js"
 
 // create post 
 export const createPost = asyncHandler(async(req , res , next)=>{
@@ -42,46 +43,46 @@ export const deletePost = asyncHandler(async(req , res , next)=>{
     let {id} = req.params
     let user = req.user
 
-
     //check post 
     let post = await Post.findById(id)
     if(!post) return next(new Error("this post is not exists!" , {cause:404}))
 
-
-
         if(post.user.toString() == user._id.toString()){
-
-                //delete any attachments of the post from database
-                if(post.attachments){
-
-                    //delete all attachments in the cloudinary 
-                    let result = await cloudinary.api.delete_resources_by_prefix(
-                        `social_platform/${user._id}/posts/${post._id}`);
-
-
-                    //delete empty folder of the post cloudinary
-                    let deleteFolderResponse =  await cloudinary.api.delete_folder(`social_platform/${user._id}/posts/${post._id}`)
-                   
-                }  
-
+            
+            //delete any attachments of the post from database
+            if(post.attachments.length !== 0){
+                console.log(post)
+                //delete all attachments in the cloudinary 
+                let result = await cloudinary.api.delete_resources_by_prefix(
+                    `social_platform/${user._id}/posts/${post._id}`);
+                //delete empty folder of the post cloudinary
+                let deleteFolderResponse =  await cloudinary.api.delete_folder(`social_platform/${user._id}/posts/${post._id}`)
                 // delete post from user document
                 user.posts.forEach(async (element , index , array)=>{
-                    if(element.toString() == post._id.toString()){
+                    if(element._id.toString() == post._id.toString()){
+                    array.splice(index , 1)
+                    await user.save()
+                    } 
+                })  
+                //delete post from database 
+                await post.deleteOne() 
+               
+            } 
+
+            if(post.attachments.length == 0){
+                console.log(user.posts)
+                // delete post from user document
+                user.posts.forEach(async (element , index , array)=>{
+                    console.log(element._id.toString())
+                    console.log(post._id.toString())
+                    if(element._id.toString() == post._id.toString()){
                         array.splice(index , 1)
                         await user.save()
                     } 
-                })  
-
+                })
                 //delete post from database 
                 await post.deleteOne() 
-        }else {
-            // delete post from user document
-            user.posts.forEach(async (element , index , array)=>{
-                if(element.toString() == post._id.toString()){
-                    array.splice(index , 1)
-                    await user.save()
-                } 
-            })  
+            }  
         }
 
     //response
@@ -195,9 +196,12 @@ export const removePost = asyncHandler(async(req , res , next)=>{
     //remove post from saving list
     user.savedPosts.forEach((element , index , array)=>{
 
-        if(element.toString() === postId.toString()) array.splice(index , 1)    
+        if(element._id.toString() === postId.toString()) array.splice(index , 1)    
 
     })
+
+    console.log(user.savedPosts)
+
     await user.save()
 
     return res.json({success:true , message:"post removed from saveing list"})
@@ -244,4 +248,36 @@ export const userPosts = asyncHandler(async(req , res , next)=>{
         posts
     })
 
+})
+
+//get post
+export const getPost = asyncHandler(async(req , res , next)=>{
+
+    let {postId} = req.params
+
+    //check post
+    let post = await Post.findById(postId).populate({path:"comments" , populate:{path:"user"}})
+    if(!post) return next(new Error("post is not found",{cause:404}))
+
+    return res.json({
+        success:true,
+        post
+    })    
+
+})
+
+//get post comments
+export const getPostComments = asyncHandler(async(req , res , next)=>{
+    let {postId} = req.params
+
+    //check post 
+    let post = await Post.findById(postId)
+    if(!post) return next(new Error("post is not exists!" , {cause:404}))
+    
+    // find post comments
+    let comments = await Comment.find({post:postId}).populate("user")
+    
+    //response
+    return res.json({success:true , numberOfComments:comments.length , comments})
+        
 })

@@ -14,7 +14,8 @@ let authSchema = new Schema({
     profilePicture:{secure_url:String , public_id:String},
     isLoged:{type:Boolean , default:false},
     savedPosts:[{type:Types.ObjectId , ref:"Post"}],
-    posts:[{type:Types.ObjectId , ref:"Post"}]
+    posts:[{type:Types.ObjectId , ref:"Post"}],
+    friends:[{type:Types.ObjectId , ref:"User"}]
 },{
     timestamps:true
 })

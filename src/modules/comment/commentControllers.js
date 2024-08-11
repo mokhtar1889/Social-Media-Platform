@@ -14,10 +14,6 @@ export const addComment = asyncHandler(async(req , res , next)=>{
     let post = await Post.findById(postId)
     if(!post) return next(new Error("post is not exists!" , {cause:404}))
 
-    //check if user comment on this post befor
-    let commentDB = await Comment.findOne({user:user._id , post:postId})
-    if(commentDB) return next(new Error("you already comment on this post" , {cause:401}))   
-
     //create comment
     let response = await Comment.create({
         post:postId ,
@@ -61,3 +57,4 @@ export const removeComment = asyncHandler(async(req , res , next)=>{
     return res.json({success:true , message:"comment deleted successfully"})
         
 })
+
